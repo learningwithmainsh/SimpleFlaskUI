@@ -1,0 +1,64 @@
+def buildNumber = BUILD_NUMBER
+pipeline {
+     
+    agent any
+
+    stages{
+        stage('Cloning Git') {
+            steps{
+        git 'https://github.com/learningwithmainsh/SimpleFlaskUI.git'
+
+    }
+    }
+
+
+stage('Building Docker Image'){
+    steps{
+        sh "docker build -t manishgenius/simpleflaskui:${buildNumber} ."
+    }
+}
+stage('Docker login and push'){
+
+steps{
+    sh " docker push manishgenius/simpleflaskui:${buildNumber} "
+}
+}
+stage('Deployment'){
+    steps{
+
+
+sshagent(['Docker_deployment_server']) 
+  
+   {
+       //sh "ssh -o StrictHostKeyChecking=no ubuntu@13.232.59.220 'echo $HOME'"
+       
+    sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.13.106 docker rm -f  simpleflaskui || true"
+    
+//sh "ssh -o StrictHostKeyChecking=no ubuntu@13.232.59.220 ls"
+ sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.13.106 docker run -d -p 8082:8080 --name simpleflaskui manishgenius/simpleflaskui:${buildNumber}  "
+}
+
+ 
+    }
+}
+}
+post{
+success{
+
+emailext attachLog: true, body: '''Build Over.. Delcarative Way-success
+
+ Regards,
+ Manish,
+ 8765368754''', subject: 'Build Over...', to: 'mnshkmrpnd@gmail.com,manishkumarpandey144@gmail.com,bharathbmn4@gmail.com'
+}
+failure{
+
+emailext attachLog: true, body: '''Build Over.. Declarative-failed
+
+ Regards,
+ Manish,
+ 8765368754''', subject: 'Build Over...', to: 'mnshkmrpnd@gmail.com,manishkumarpandey144@gmail.com,bharathbmn4@gmail.com'
+}
+}
+
+}
