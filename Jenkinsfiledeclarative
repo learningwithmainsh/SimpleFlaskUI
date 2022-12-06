@@ -2,6 +2,10 @@ def buildNumber = BUILD_NUMBER
 pipeline {
      
     agent any
+    /* agent {
+    label 'awsnode'
+    }
+    */
 
     stages{
         stage('Cloning Git') {
